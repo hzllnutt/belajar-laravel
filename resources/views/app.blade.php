@@ -167,15 +167,16 @@
 <body>
     <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-brand">AdminPanel</div>
+        <div class="sidebar-brand">PPKD Jakarta Pusat</div>
         <ul class="sidebar-menu">
-            <li><a href="#" class="active">Dashboard</a></li>
+            <li><a href="{{ route('dashboard.index') }}" class="active">Dashboard</a></li>
             {{-- <li><a href="{{ url('peserta')}}">Peserta</a></li> --}}
             <li><a href="{{ url('role')}}">Role</a></li>
+            <li><a href="{{ url('menu')}}">Menu</a></li>
             <li><a href="{{ route('product.index')}}">Products</a></li>
             <li><a href="{{ route('category.index')}}">Category</a></li>
-            <li><a href="#">Pesanan</a></li>
-            <li><a href="#">Pengaturan</a></li>
+            <li><a href="{{ route('order.index')}}">Transaction Order</a></li>
+            <li><a href="{{ url('setting') }}">Setting</a></li>
         </ul>
     </aside>
     <!-- Main Area -->

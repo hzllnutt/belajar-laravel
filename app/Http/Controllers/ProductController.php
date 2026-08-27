@@ -35,13 +35,13 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $data = [
-            'name'=>$request->name,
-            'category_id'=>$request->category_id,
-            'price'=>$request->price,
-            'description'=>$request->description
+            'name' => $request->name,
+            'category_id' => $request->category_id,
+            'price' => $request->price,
+            'description' => $request->description
         ];
         //jika user mengupload foto 
-        if($request->hasFile('photo')){
+        if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('products', 'public');
         }
         Product::create($data);
@@ -72,17 +72,16 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-         $data = [
-            'name'=>$request->name,
-            'category_id'=>$request->category_id,
-            'price'=>$request->price,
-            'description'=>$request->description
+        $data = [
+            'name' => $request->name,
+            'category_id' => $request->category_id,
+            'price' => $request->price,
+            'description' => $request->description
         ];
 
-        if($request->hasFile('photo')){
-            if($product->photo){
+        if ($request->hasFile('photo')) {
+            if ($product->photo) {
                 Storage::disk('public')->delete($product->photo);
-            
             }
             $data['photo'] = $request->file('photo')->store('products', 'public');
         }
@@ -93,8 +92,14 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Product $product)
     {
-        //
+
+        if ($product->photo) {
+            Storage::disk('public')->delete($product->photo);
+        }
+        $product->delete();
+
+        return redirect()->to('product')->with('success', 'Delete Berhasil');
     }
 }
