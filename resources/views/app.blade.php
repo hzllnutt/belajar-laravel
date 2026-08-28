@@ -177,6 +177,8 @@
             <li><a href="{{ route('category.index')}}">Category</a></li>
             <li><a href="{{ route('order.index')}}">Transaction Order</a></li>
             <li><a href="{{ url('setting') }}">Setting</a></li>
+            <li><a href="#" onclick="event.preventDefault(); document.getElementById('logout').submit()">Log-Out</a></li>
+            <form action="{{ route('logout') }}" id="logout" method="post" class="d-none">@csrf</form>
         </ul>
     </aside>
     <!-- Main Area -->

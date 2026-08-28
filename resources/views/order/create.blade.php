@@ -83,6 +83,33 @@
         .payment-btn {
             border-radius: 10px;
         }
+
+        /* Tampilan khusus saat mencetak (Print Struk) */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #receipt-print, #receipt-print * {
+        visibility: visible;
+    }
+
+    #receipt-print {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm; /* Standar Ukuran Printer Struk Thermal */
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        color: #000;
+        padding: 10px;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}
+
     </style>
 </head>
 
@@ -520,6 +547,10 @@
             document.getElementById('total').innerText = `Rp. ${formatRupiah(total)}`;
             document.getElementById('total-paid').innerText = `Rp. ${formatRupiah(total)}`
             document.getElementById('cartCount').innerText = itemCount;
+
+            return {
+                total
+            };
         }
 
         function formatRupiah(number) {
@@ -557,9 +588,25 @@
                 alert("PILIH METODE PEMBAYARAN!");
                 return;
             }
+            const {
+                total
+            } = calculateCart();
+            const cashPayInput = document.getElementById('cash_paid');
+            const change = 0;
 
-            console.log(customerName);
-            console.log(paymentMethod);
+            if (paymentMethod === 'cash') {
+            const cashPaidValue = parseFloat(cashPayInput?.value) || 0;
+
+            if (!cashPaidValue) {
+                alert("Input pembayaran terlebih dahulu!");
+                cashPayInput.focus();
+                return;
+            }
+            change = cashPaidValue - total;
+            }
+
+            // console.log(customerName);
+            // console.log(paymentMethod);
 
             try {
                 const response = await fetch("{{ route('order.store') }}", {
@@ -578,7 +625,8 @@
                             }
                         }),
                         payment_method: paymentMethod,
-                        customer_name: customerName
+                        customer_name: customerName,
+                        order_change: change
                     })
                 })
                 const result = await response.json();
@@ -629,6 +677,8 @@
 
         displayCart();
     </script>
+
+    
 </body>
 
 </html>
