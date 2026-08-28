@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
-use Exception;
+use FFI\Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PSpell\Config;
 
@@ -35,25 +36,26 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        // buat validasi
         $request->validate([
             'items' => 'required|array',
             'items.*.id' => 'required|exists:products,id',
             'items.*.qty' => 'required|integer|min:1',
             'payment_method' => 'nullable|string',
-            // 'customer_name'
+            'customer_name' => 'nullable|string',
         ]);
+
         try {
-            return DB::transaction(function () use ($request) {
+            $result = DB::transaction(function () use ($request) {
                 $subtotal = 0;
                 $itemsData = [];
-                //hitung total &cek ketersedian product
+
                 foreach ($request->items as $item) {
-                    $product = Product::findOrFail($item['id']);
-                    if ($product->qty < $item['qty']){
-                        return response()->json([
-                            'message'=>"Tidak ada stock"
-                        ], 422);
+                    // Lock row for update to prevent race conditions on stock
+                    $product = Product::lockForUpdate()->findOrFail($item['id']);
+
+                    if ($product->qty < $item['qty']) {
+                        // Throwing an exception triggers auto-rollback inside DB::transaction
+                        throw new \Exception("Stock untuk product '{$product->name}' tidak mencukupi.", 422);
                     }
 
                     $itemSubtotal = $product->price * $item['qty'];
@@ -67,32 +69,33 @@ class OrderController extends Controller
                     ];
                 }
 
-                $tax = $subtotal * 0.1;
+                $tax = $subtotal * 0.10;
                 $total = $subtotal + $tax;
-                $orderCode = 'ORD' . date('Ymd') . '-' . rand(1000, 9999);
-
+                $orderCode = 'ORD-' . date('Ymd') . '-' . rand(1000, 9999);
                 $paymentMethod = $request->payment_method ?? 'cash';
 
-                $order = \App\Models\Order::create([
+                $order = Order::create([
                     'order_code' => $orderCode,
                     'order_amount' => $total,
                     'order_change' => 0,
-                    'status' => $paymentMethod === 'cash' ? 'success' : 'pending',
+                    // 'status' => $paymentMethod === 'cash' ? 'success' : 'pending'
                 ]);
-                // orderdetail
+
                 foreach ($itemsData as $data) {
                     OrderDetail::create([
-                        'order_id' => $order->id,
-                        'product_id' => $data['product']->id,
-                        'order_qty' => $data['qty'],
-                        'order_price' => $data['price'],
+                        'order_id'       => $order->id,
+                        'product_id'     => $data['product']->id,
+                        'order_qty'      => $data['qty'],
+                        'order_price'    => $data['price'],
                         'order_subtotal' => $data['subtotal']
                     ]);
+
                     if ($paymentMethod === 'cash') {
                         $data['product']->decrement('qty', $data['qty']);
                     }
                 }
-                if ($paymentMethod === 'midtrans'){
+
+                if ($paymentMethod === 'midtrans') {
                     \Midtrans\Config::$serverKey = config('services.midtrans.server_key');
                     \Midtrans\Config::$isProduction = config('services.midtrans.is_production', false);
                     \Midtrans\Config::$isSanitized = true;
@@ -103,38 +106,38 @@ class OrderController extends Controller
                             "order_id" => $order->order_code,
                             "gross_amount" => (int) round($total)
                         ],
-                        "customer_details"=> [
+                        "customer_details" => [
                             'first_name' => $request->customer_name ?? 'No-Name',
                         ],
-                        // 'enabled_payments'=> ['gopay', 'qris'],
                     ];
 
                     $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-                    return response()->json([
+                    return [
                         'success' => true,
                         'payment_method' => 'midtrans',
                         'snap_token' => $snapToken,
                         'order_id' => $order->id,
-                    ]);
+                    ];
                 }
 
-
-                return response()->json([
+                return [
                     'success' => true,
                     'payment_method' => 'cash',
                     'order_id' => $order->id
-                ]);
+                ];
             });
-        } catch (Exception $th) {
-            //kalau gagal
+
+            return response()->json($result, 200);
+        } catch (\Throwable $th) {
+            $status = $th->getCode() === 422 ? 422 : 500;
+
             return response()->json([
-                'message' => 'Gagal menyimpan transaksi' . $th->getMessage()
-            ], 500);
+                'success' => false,
+                'message' => $th->getMessage()
+            ], $status);
         }
     }
-
-
     /**
      * Display the specified resource.
      */
