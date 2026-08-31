@@ -23,8 +23,8 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                 <img src="{{ asset('storage/' . $value->photo) }}" alt="" width="40" height="40" style="object-fit: cover">
-                               
-                               
+
+
                                <div class="fw-semibold">
                                 {{ $value->name}}
                                  </div>

@@ -85,31 +85,32 @@
         }
 
         /* Tampilan khusus saat mencetak (Print Struk) */
-@media print {
-    body * {
-        visibility: hidden;
-    }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
 
-    #receipt-print, #receipt-print * {
-        visibility: visible;
-    }
+            #receipt-print,
+            #receipt-print * {
+                visibility: visible;
+            }
 
-    #receipt-print {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 80mm; /* Standar Ukuran Printer Struk Thermal */
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 12px;
-        color: #000;
-        padding: 10px;
-    }
+            #receipt-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+                /* Standar Ukuran Printer Struk Thermal */
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 12px;
+                color: #000;
+                padding: 10px;
+            }
 
-    .no-print {
-        display: none !important;
-    }
-}
-
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -287,13 +288,15 @@
                             <strong class="bg-success p-2 text-white rounded" id="total-paid">Harga : Rp.0</strong>
                         </div>
                     </div>
-                    <div class="row only-cash d-none align-items-center my-3" >
+                    <div class="row only-cash d-none align-items-center my-3">
                         <div class="col-md-6">
                             <label for="cash_paid" class="form-label fw-bold">Pembayaran Cash :</label>
-                            <input type="number" id="cash_paid" step="any" min="0" class="form-control mb-2" oninput="calculateChange()">
+                            <input type="number" id="cash_paid" step="any" min="0"
+                                class="form-control mb-2" oninput="calculateChange()">
                         </div>
                         <div class="col-md-6">
-                            <strong class="bg-primary p-2 text-white rounded" id="change-paid">Kembalian : Rp.0</strong>
+                            <strong class="bg-primary p-2 text-white rounded" id="change-paid">Kembalian :
+                                Rp.0</strong>
                         </div>
                     </div>
                     <h5 class="mb-3 fw-bold">Pilih Metode Pembayaran</h5>
@@ -344,19 +347,19 @@
                 }
 
                 const onlyCashBox = document.querySelector('.only-cash');
-                if (this.value === 'cash'){
-                onlyCashBox.classList.remove('d-none');
-                document.getElementById('cash_paid').focus();
-                }else {
+                if (this.value === 'cash') {
+                    onlyCashBox.classList.remove('d-none');
+                    document.getElementById('cash_paid').focus();
+                } else {
                     onlyCashBox.classList.add('d-none');
                     document.getElementById('cash_paid').value = 0;
                 }
             });
         });
 
-        function calculateChange(){
+        function calculateChange() {
             let subtotal = 0;
-            cart.forEach(function(item){
+            cart.forEach(function(item) {
                 subtotal += Number(item.price) * Number(item.qty);
 
             });
@@ -372,9 +375,9 @@
                 changeElement.classList.add('bg-danger');
                 changeElement.classList.remove('bg-primary');
             } else {
-               changeElement.innerText = `Kembali Rp. ${formatRupiah(Math.abs(changeMoney))}`;
-               changeElement.classList.add('bg-primary');
-               changeElement.classList.remove('bg-danger');
+                changeElement.innerText = `Kembali Rp. ${formatRupiah(Math.abs(changeMoney))}`;
+                changeElement.classList.add('bg-primary');
+                changeElement.classList.remove('bg-danger');
             }
         }
 
@@ -542,10 +545,10 @@
             const tax = subtotal * 0.10;
             console.log(tax);
             const total = subtotal + tax;
-            document.getElementById('subTotal').innerText = `Rp. ${formatRupiah(subtotal)}`;
-            document.getElementById('tax').innerText = `Rp. ${formatRupiah(tax)}`;
-            document.getElementById('total').innerText = `Rp. ${formatRupiah(total)}`;
-            document.getElementById('total-paid').innerText = `Rp. ${formatRupiah(total)}`
+            document.getElementById('subTotal').innerText = `Rp ${formatRupiah(subtotal)}`;
+            document.getElementById('tax').innerText = `Rp ${formatRupiah(tax)}`;
+            document.getElementById('total').innerText = `Rp ${formatRupiah(total)}`;
+            document.getElementById('total-paid').innerText = `Rp ${formatRupiah(total)}`
             document.getElementById('cartCount').innerText = itemCount;
 
             return {
@@ -592,17 +595,17 @@
                 total
             } = calculateCart();
             const cashPayInput = document.getElementById('cash_paid');
-            const change = 0;
+            let change = 0;
 
             if (paymentMethod === 'cash') {
-            const cashPaidValue = parseFloat(cashPayInput?.value) || 0;
+                const cashPaidValue = parseFloat(cashPayInput?.value) || 0;
 
-            if (!cashPaidValue) {
-                alert("Input pembayaran terlebih dahulu!");
-                cashPayInput.focus();
-                return;
-            }
-            change = cashPaidValue - total;
+                if (!cashPaidValue) {
+                    alert("Input pembayaran terlebih dahulu!");
+                    cashPayInput.focus();
+                    return;
+                }
+                change = cashPaidValue - total;
             }
 
             // console.log(customerName);
@@ -640,6 +643,7 @@
                         onSuccess: function(result) {
                             /* You may add your own implementation here */
                             alert("payment success!");
+                            window.open(`${result.order_id}/print`, '_blank');
                             cart = [];
                             displayCart();
                             location.reload();
@@ -647,7 +651,7 @@
                         },
                         onPending: function(result) {
                             /* You may add your own implementation here */
-                            alert("wating your payment!");
+                            alert("waiting your payment!");
                             console.log(result);
                         },
                         onError: function(result) {
@@ -662,6 +666,7 @@
                     });
                 } else {
                     alert('Transaksi Cash Berhasil!');
+                    window.open(`${result.order_id}/print`, '_blank');
                     cart = [];
                     displayCart();
                     location.reload();
@@ -677,8 +682,6 @@
 
         displayCart();
     </script>
-
-    
 </body>
 
 </html>

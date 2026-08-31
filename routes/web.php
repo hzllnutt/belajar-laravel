@@ -56,6 +56,17 @@ Route::middleware('auth')->group(function(){
     Route::resource('setting', SettingController::class);
     Route::resource('menu', MenuController::class);
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
-
+    Route::get('/order/{id}/print', [OrderController::class, 'printReceipt'])->name('order.print');
 });
 //role
+Route::middleware(['auth', 'admin'])->group(function(){
+    Route::get('admin/dashboard', [DashboardController::class, 'indexAdmin']);
+});
+Route::middleware(['auth', 'kasir'])->group(function(){
+    Route::get('cashier/dashboard', [DashboardController::class, 'indexCashier']);
+    Route::resource('order', OrderController::class);
+    Route::get('order/{id}/print', [OrderController::class, 'printReceipt'])->name('order.print');
+});
+Route::middleware(['auth', 'pimpinan'])->group(function(){
+    Route::resource('dashboard', DashboardController::class);
+});

@@ -169,16 +169,38 @@
     <aside class="sidebar">
         <div class="sidebar-brand">PPKD Jakarta Pusat</div>
         <ul class="sidebar-menu">
-            <li><a href="{{ route('dashboard.index') }}" class="active">Dashboard</a></li>
-            {{-- <li><a href="{{ url('peserta')}}">Peserta</a></li> --}}
-            <li><a href="{{ url('role')}}">Role</a></li>
-            <li><a href="{{ url('menu')}}">Menu</a></li>
-            <li><a href="{{ route('product.index')}}">Products</a></li>
-            <li><a href="{{ route('category.index')}}">Category</a></li>
-            <li><a href="{{ route('order.index')}}">Transaction Order</a></li>
-            <li><a href="{{ url('setting') }}">Setting</a></li>
-            <li><a href="#" onclick="event.preventDefault(); document.getElementById('logout').submit()">Log-Out</a></li>
-            <form action="{{ route('logout') }}" id="logout" method="post" class="d-none">@csrf</form>
+
+            {{-- @foreach ($menus as $item) --}}
+            {{-- @if ($item->parent_id == null)
+                @endif --}}
+            {{-- <li><a href="{{ url($item->url) }}"
+                        class="{{ request()->is($item->url) ? 'active' : '' }}">{{ $item->name }}</a></li> --}}
+            {{-- @endforeach --}}
+            @if (Auth::user()->role_id == 3)
+                <li><a href="{{ url('dashboard') }}" class="active">Dashboard</a></li>
+            @elseif (Auth::user()->role_id == 2)
+                <li><a href="{{ url('cashier/dashboard') }}" class="active">Dashboard</a></li>
+                <li><a href="{{ url('order/create') }}" class="active">Order</a></li>
+            @else
+                <li><a href="{{ url('admin/dashboard') }}" class="active">Dashboard</a></li>
+                <li><a href="{{ route('product.index') }}">Product</a></li>
+                <li><a href="{{ route('category.index') }}">Category</a></li>
+                <li><a href="{{ url('role') }}">Role</a></li>
+            @endif
+
+            {{--
+            <li><a href="{{ url('menu') }}">Menu</a></li>
+
+
+            <li><a href="{{ route('order.index') }}">Transaction Order</a></li>
+            <li><a href="#">Settings</a></li> --}}
+            <li><a href="#"
+                    onclick="event.preventDefault(); document.getElementById('logout').submit();">Log-out</a>
+            </li>
+            <form action="{{ route('logout') }}" id="logout" method="post" class="d-none">
+                @csrf
+            </form>
+
         </ul>
     </aside>
     <!-- Main Area -->

@@ -40,12 +40,12 @@ class ProductController extends Controller
             'price' => $request->price,
             'description' => $request->description
         ];
-        //jika user mengupload foto 
+        //jika user mengupload foto
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('products', 'public');
         }
         Product::create($data);
-        return redirect()->to('product');
+        return redirect()->to('product')->with('success', 'Create product success');
     }
 
     /**
